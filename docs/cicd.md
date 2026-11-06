@@ -47,7 +47,11 @@ Dependabot is configured via `.github/dependabot.yml` to open weekly PRs for:
 - uv dependencies in `ingestion/` and `mcp/`
 - Docker base images in `frontend/` and `ingestion/`
 
-Minor and patch updates are grouped per ecosystem to limit PR noise; major updates open as individual PRs so they get reviewed on their own. Each ecosystem uses a 7-day cooldown so Dependabot skips versions released in the last week (reduces exposure to compromised fresh releases). Dependabot PRs go through the same CI checks as any other PR. Review and merge them like normal feature PRs — release-please will fold the resulting `chore(deps):` commits into the next release changelog.
+Minor and patch updates are grouped per ecosystem to limit PR noise; major updates open as individual PRs so they get reviewed on their own. Each ecosystem uses a 7-day cooldown so Dependabot skips versions released in the last week (reduces exposure to compromised fresh releases).
+
+Node-based Docker stages and CI use Node 24 LTS. Do not blindly adopt an odd-numbered Node image from an old Dependabot PR: [Node 25 reached end of life on June 1, 2026, while Node 24 remains supported through April 2028](https://github.com/nodejs/Release/blob/main/schedule.json). Keep the frontend and archive-runtime CI versions aligned with their Docker build stages.
+
+Dependabot PRs go through the same CI checks as any other PR. Review and merge them like normal feature PRs — release-please will fold the resulting `chore(deps):` commits into the next release changelog.
 
 When debugging or reviewing a frontend dependency upgrade, verify both the declared/locked versions and the actually installed tree. This frontend uses Yarn 4 with `nodeLinker: node-modules`, so `package.json` / `yarn.lock` can say one thing while a stale `node_modules` tree still runs an older package. Check with `yarn why <package>` and, when runtime behavior is suspect, `node -p "require('./node_modules/<package>/package.json').version"` from `frontend/`; run `yarn install` if they disagree. Also audit local compatibility shims/workarounds that were added for the old version. An upgrade can be present but still behave like the old version if custom wrappers keep applying now-obsolete behavior.
 

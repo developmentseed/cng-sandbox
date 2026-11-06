@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -26,6 +27,15 @@ class Settings(BaseSettings):
     postgres_dsn: str = (
         "postgresql://sandbox:sandbox_dev_password@localhost:5439/postgis"
     )
+
+    @field_validator("postgres_dsn")
+    @classmethod
+    def use_installed_postgres_driver(cls, value: str) -> str:
+        # SQLAlchemy 2.1 defaults bare PostgreSQL URLs to psycopg v3, but this
+        # service uses psycopg2. Preserve existing environment configuration.
+        if value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+psycopg2://", 1)
+        return value
 
     # Upload limits
     max_upload_bytes: int = 16_106_127_360  # 15 GB

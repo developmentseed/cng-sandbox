@@ -375,3 +375,32 @@ describe("CategoricalPixelTooltip", () => {
     expect(swatch).toHaveStyle({ backgroundColor: "rgb(34, 136, 68)" });
   });
 });
+
+describe("raster 0.8 tile layout", () => {
+  it("samples raw content using the affine on tile metadata", async () => {
+    const { result } = renderHook(() => usePixelInspector(null));
+    act(() => {
+      result.current.onHover({
+        x: 10,
+        y: 20,
+        coordinate: [-5, 5],
+        sourceTile: {
+          index: { x: 0, y: 0, z: 0 },
+          inverseTransform: (x, y) => [x / 10, y / 10],
+          content: {
+            raw: new Float32Array([1, 2, 3, 4]),
+            width: 2,
+            height: 2,
+            projectFrom4326: () => [15, 15],
+          },
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(result.current.hoverInfo).toMatchObject({
+        kind: "numeric",
+        value: 4,
+      });
+    });
+  });
+});

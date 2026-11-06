@@ -19,28 +19,21 @@ interface HoverSourceTile {
   boundingBox?: [number[], number[]];
   /** Legacy/alternate shape returned by some tileset implementations. */
   bbox?: TileBbox;
-  content?: {
-    /**
-     * Affine inverse from deck.gl-geotiff: maps source-CRS coordinates within
-     * a tile to pixel coordinates `[col, row]` within that tile's grid.
-     * Present on COGLayer-rendered tiles (paletted + continuous builders).
-     */
+  /** Raster 0.8 stores the affine on tile metadata, outside its content. */
+  inverseTransform?: InverseTransform;
+  content?: PixelTileData & {
+    /** Older raster tiles wrapped both data and affine in content. */
     inverseTransform?: InverseTransform;
-    data?: {
-      raw?: ArrayLike<number>;
-      width?: number;
-      height?: number;
-      /**
-       * Reprojector from EPSG:4326 (lng/lat) to the COG's source CRS.
-       * Attached by `buildCogLayerPaletted` / `buildCogLayerContinuous` once
-       * `onGeoTIFFLoad` resolves the COG's CRS. Required for accurate hover
-       * sampling on non-Mercator COGs (linear lng/lat interpolation across
-       * the tile's lng/lat AABB picks the wrong pixel for projections with
-       * curved parallels — Albers, polar stereographic, etc.).
-       */
-      projectFrom4326?: ProjectFrom4326 | null;
-    };
+    data?: PixelTileData;
   };
+}
+
+interface PixelTileData {
+  raw?: ArrayLike<number>;
+  width?: number;
+  height?: number;
+  /** Translate WGS84 coordinates into the COG's source CRS before sampling. */
+  projectFrom4326?: ProjectFrom4326 | null;
 }
 
 function resolveTileExtent(
@@ -81,7 +74,7 @@ function lookupValue(
   lng: number,
   lat: number
 ): number | null {
-  const data = sourceTile.content?.data;
+  const data = sourceTile.content?.data ?? sourceTile.content;
   const raw = data?.raw;
   const width = data?.width;
   const height = data?.height;
@@ -93,7 +86,8 @@ function lookupValue(
   // pixel. Projecting through `projectFrom4326` + the per-tile affine inverse
   // is exact regardless of the source projection.
   const projectFrom4326 = data.projectFrom4326;
-  const inverseTransform = sourceTile.content?.inverseTransform;
+  const inverseTransform =
+    sourceTile.inverseTransform ?? sourceTile.content?.inverseTransform;
   if (projectFrom4326 && inverseTransform) {
     const [srcX, srcY] = projectFrom4326(lng, lat);
     if (
