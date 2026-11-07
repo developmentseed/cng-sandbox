@@ -11,7 +11,11 @@ vi.mock("@developmentseed/deck.gl-raster/gpu-modules", () => ({
   Colormap: {},
 }));
 
-import { buildCogLayerContinuous, resolveCogUrl } from "../cogLayer";
+import {
+  buildCogLayerContinuous,
+  buildCogLayerPaletted,
+  resolveCogUrl,
+} from "../cogLayer";
 
 describe("resolveCogUrl", () => {
   it("passes https URLs through unchanged", () => {
@@ -140,4 +144,33 @@ describe("buildCogLayerContinuous", () => {
       })
     );
   });
+});
+
+describe("custom COG texture disposal", () => {
+  it.each(["continuous", "paletted"])(
+    "disposes %s textures on tile unload",
+    (kind) => {
+      const layers =
+        kind === "continuous"
+          ? buildCogLayerContinuous({
+              cogUrl: "/cog/test.tif",
+              opacity: 1,
+              rasterMin: 0,
+              rasterMax: 1,
+            })
+          : buildCogLayerPaletted({
+              cogUrl: "/cog/test.tif",
+              opacity: 1,
+              categories: [{ value: 1, color: "#ff0000", label: "A" }],
+            });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const props = (layers[0] as any).props;
+      const texture = { destroy: vi.fn() };
+      const lutTexture = { destroy: vi.fn() };
+      props.onTileUnload({ content: { texture, lutTexture } });
+      expect(texture.destroy).toHaveBeenCalledOnce();
+      expect(lutTexture.destroy).toHaveBeenCalledOnce();
+      expect(() => props.onTileUnload({ content: null })).not.toThrow();
+    }
+  );
 });

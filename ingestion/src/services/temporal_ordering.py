@@ -77,7 +77,8 @@ def common_filename_prefix(filenames: list[str]) -> str:
         return os.path.splitext(os.path.basename(filenames[0]))[0]
 
     stems = [os.path.splitext(os.path.basename(f))[0] for f in filenames]
-    prefix = re.sub(r"[\d_\- ]+$", "", os.path.commonprefix(stems))
+    # Filename stems intentionally share characters, not filesystem components.
+    prefix = re.sub(r"[\d_\- ]+$", "", os.path.commonprefix(stems))  # noqa: RUF071
     if not prefix:
         return os.path.splitext(os.path.basename(filenames[0]))[0]
     return prefix

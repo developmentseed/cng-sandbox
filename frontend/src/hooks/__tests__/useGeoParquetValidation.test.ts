@@ -1,10 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import type { AsyncDuckDBConnection } from "@duckdb/duckdb-wasm";
 import { useGeoParquetValidation } from "../useGeoParquetValidation";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Validation tests exercise mocked DuckDB results, never the public network.
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 function makeConn(

@@ -76,6 +76,17 @@ function createProjectionHolder(): {
   };
 }
 
+/** Custom getTileData owns GPU textures; raster 0.8 only frees its defaults. */
+function unloadCogTile(tile: {
+  content?: {
+    texture?: { destroy: () => void };
+    lutTexture?: { destroy: () => void };
+  } | null;
+}) {
+  tile.content?.texture?.destroy();
+  tile.content?.lutTexture?.destroy();
+}
+
 interface CogLayerOptions {
   cogUrl: string;
   opacity: number;
@@ -195,6 +206,7 @@ export function buildCogLayerPaletted({
       opacity,
       getTileData,
       renderTile,
+      onTileUnload: unloadCogTile,
       onGeoTIFFLoad: projection.onGeoTIFFLoad,
       maxError: 0.03,
       pickable: true,
@@ -311,6 +323,7 @@ export function buildCogLayerContinuous({
       opacity,
       getTileData,
       renderTile,
+      onTileUnload: unloadCogTile,
       onGeoTIFFLoad: projection.onGeoTIFFLoad,
       maxError: 0.03,
       pickable: true,
