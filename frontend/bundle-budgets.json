@@ -3,23 +3,23 @@
   "baselines": {
     "bootstrap": {
       "entry": "index.html",
-      "rawBytes": 582756,
-      "gzipBytes": 171994
+      "rawBytes": 613607,
+      "gzipBytes": 180852
     },
     "workspace": {
       "entry": "src/pages/WorkspaceHomePage.tsx",
-      "rawBytes": 226782,
-      "gzipBytes": 80224
+      "rawBytes": 227692,
+      "gzipBytes": 80531
     },
     "mapViewer": {
       "entry": "src/pages/MapPage.tsx",
-      "rawBytes": 2833219,
-      "gzipBytes": 806189
+      "rawBytes": 3125993,
+      "gzipBytes": 892682
     },
     "largestSynchronousAsset": {
-      "entry": "assets/MapPage-meLayHc3.js",
-      "rawBytes": 1985795,
-      "gzipBytes": 565419
+      "entry": "assets/LidarLayerAdapter-BmYgjZT_-CLyqt5e1.js",
+      "rawBytes": 1287781,
+      "gzipBytes": 358416
     }
   }
 }
